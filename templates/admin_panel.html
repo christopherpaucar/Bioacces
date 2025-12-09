@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>BioAccess — Panel del Administrador</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+
+<header class="top-nav">
+  <button class="mode-btn" onclick="location.href='/'" id="btnUserMode">Modo Usuario</button>
+  <button class="mode-btn active" onclick="location.href='/admin-panel/'" id="btnAdminMode">Administrador</button>
+  <h1 class="title">Panel del Administrador — BioAccess</h1>
+</header>
+
+<div id="adminPanel">
+
+  <!-- 1. Registrar usuario -->
+  <section class="box">
+    <h2><span class="section-icon">👤</span> 1. Registrar nuevo usuario</h2>
+    <p>Este usuario recibirá el registro de su rostro.</p>
+
+    <div class="actions-row" style="margin-top:.9rem;">
+      <label>
+        Nombre de usuario:
+        <input type="text" id="username" placeholder="Ej: juan" />
+      </label>
+      <button id="btnCreateUser" class="btn-primary">➕ Crear usuario</button>
+    </div>
+  </section>
+
+  <!-- 2. Captura de rostro -->
+  <section class="box">
+    <h2><span class="section-icon">📸</span> 2. Registrar rostro (captura con cámara)</h2>
+    <p>Mantén el rostro visible y firme durante la captura del dataset.</p>
+
+    <div class="camera-wrapper">
+      <div class="camera-frame">
+        <video id="video" autoplay playsinline></video>
+      </div>
+    </div>
+
+    <div class="actions-row" style="margin-top:.9rem;">
+      <button id="btnCaptureFaces" class="btn-primary">📷 Capturar 40 fotos del dataset</button>
+    </div>
+  </section>
+
+  <!-- 3. Reentrenar -->
+  <section class="box">
+    <h2><span class="section-icon">⚙️</span> 3. Reentrenar Sistema Biométrico</h2>
+    <p>
+      Este proceso actualiza el modelo PCA + SVM con los nuevos rostros registrados.
+      Puede tardar entre <b>20 a 60 segundos</b>. No cierres esta ventana durante el proceso.
+    </p>
+    <div class="actions-row">
+      <button id="btnRetrain" class="btn-primary">🔄 Reentrenar sistema</button>
+    </div>
+  </section>
+
+  <!-- Estado -->
+  <section class="box">
+    <h2><span class="section-icon">📊</span> Estado del sistema</h2>
+    <p id="statusBox">Modo administrador activo.</p>
+  </section>
+</div>
+
+<footer class="footer-bioaccess">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <span class="logo">B</span>
+      <span>BioAccess — Consola de administración biométrica</span>
+    </div>
+    <div class="footer-right">made by <b>xRad0x</b></div>
+  </div>
+</footer>
+
+<script src="/static/js/app_admin.js"></script>
+</body>
+</html>
+x

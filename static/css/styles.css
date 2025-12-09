@@ -1,0 +1,284 @@
+/* ===========================
+   RESET BÁSICO
+=========================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #f3f6fb 0%, #e9eef6 100%);
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll suave y discreto */
+body {
+    scrollbar-width: thin;
+    scrollbar-color: #a9c5ff #dbe4f3;
+}
+
+body::-webkit-scrollbar { width: 8px; }
+body::-webkit-scrollbar-track { background: #dbe4f3; }
+body::-webkit-scrollbar-thumb {
+    background: #a9c5ff;
+    border-radius: 999px;
+}
+
+/* ===========================
+   TOP NAV / BRANDING
+=========================== */
+.top-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 2.5rem;
+    background: rgba(250, 250, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.title {
+    margin-left: auto;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.title::before {
+    content: "🧬";
+    font-size: 1.3rem;
+}
+
+/* Botones de modo */
+.mode-btn {
+    border: 1px solid #c8d4e8;
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: 0.18s ease-out;
+}
+
+.mode-btn::before { content: "👤"; }
+#btnAdminMode.mode-btn::before { content: "🛡️"; }
+
+.mode-btn:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    transform: translateY(-2px);
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 0 18px rgba(59, 130, 246, 0.55);
+}
+
+/* ===========================
+   LAYOUT GENERAL
+=========================== */
+#userPanel,
+#adminPanel {
+    max-width: 1200px;
+    margin: 1.8rem auto;
+    padding: 0 1.5rem 2.5rem;
+}
+
+/* ===========================
+   TARJETAS / SECCIONES
+=========================== */
+.box {
+    background: #ffffff;
+    border-radius: 1.1rem;
+    padding: 1.9rem 2.2rem;
+    margin-bottom: 1.6rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: 0.25s ease;
+}
+
+.box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 46px rgba(0, 0, 0, 0.12);
+}
+
+/* Encabezado de sección */
+.box h2 {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+.box h2 .section-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    color: white;
+    font-size: 1rem;
+}
+
+/* Texto */
+.box p,
+.box label {
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+/* ===========================
+   CÁMARA
+=========================== */
+.camera-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.2rem;
+}
+
+.camera-frame {
+    width: 720px;
+    max-width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 1rem;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 32px rgba(59, 130, 246, 0.35);
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+.camera-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===========================
+   INPUTS / BOTONES
+=========================== */
+label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.4rem 0 0.6rem;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 0.55rem 1rem;
+    min-width: 240px;
+    font-size: 0.95rem;
+    color: #0f172a;
+    transition: 0.2s ease;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    padding: 0.55rem 1.25rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+    transition: 0.2s ease-out;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.5);
+}
+
+/* ===========================
+   ESTADO DEL SISTEMA
+=========================== */
+#statusBox {
+    margin-top: 0.6rem;
+    padding: 0.9rem 1.2rem;
+    background: #f1f5f9;
+    border-left: 4px solid #3b82f6;
+    border-radius: 0.6rem;
+    color: #0f172a;
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+.footer-bioaccess {
+    margin-top: 2rem;
+}
+
+.footer-inner {
+    margin-top: 0.7rem;
+    background: #ffffff;
+    border: 1px solid #d0d7e6;
+    border-radius: 12px;
+    padding: 0.7rem 1.3rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #334155;
+}
+
+.footer-left .logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 768px) {
+    #userPanel,
+    #adminPanel { padding-inline: 1rem; }
+
+    .box { padding: 1.3rem; }
+
+    .footer-inner {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}
