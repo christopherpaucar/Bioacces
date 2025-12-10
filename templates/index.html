@@ -5,6 +5,36 @@
   <meta charset="UTF-8" />
   <title>BioAccess — Fase 3</title>
   <link rel="stylesheet" href="/static/css/styles.css" />
+  <style>
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounceIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    .btn-primary {
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+  </style>
 </head>
 <body>
 
@@ -17,14 +47,36 @@
 <div id="userPanel">
   <section class="box">
     <h2><span class="section-icon">✅</span> Verificar usuario</h2>
+    <p style="color:#64748b;margin-bottom:1rem;">¡Hola! 👋 Para acceder, necesitamos verificar tu identidad usando reconocimiento facial y de voz.</p>
+    
+    <h3 style="margin-top:1rem; margin-bottom:0.5rem; font-size:1.1rem;">Reconocimiento facial (Paso 1)</h3>
     <div class="camera-wrapper">
-      <div class="camera-frame">
-        <video id="video" autoplay playsinline></video>
+      <div class="camera-frame" style="position:relative;">
+        <video id="video" autoplay playsinline style="transform: scaleX(-1);"></video>
+        <img id="capturedFaceImage" style="display:none;width:100%;height:100%;object-fit:cover;transform: scaleX(-1);border-radius:8px;" />
+        <div id="countdownDisplay" style="position:absolute;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,0.7);z-index:10;border-radius:8px;">
+          <div style="font-size:5rem;font-weight:700;color:#fff;text-shadow:3px 3px 6px rgba(0,0,0,0.8);margin-bottom:1rem;" id="countdownNumber"></div>
+          <div style="font-size:1.5rem;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.8);" id="countdownMessage">Preparate, la captura comenzará en...</div>
+        </div>
       </div>
     </div>
 
     <div style="margin-top:1rem;">
-      <button id="btnVerifyFace" class="btn-primary">🔒 Verificar rostro</button>
+      <button id="btnVerifyFace" class="btn-primary">🔒 Paso 1: Capturar rostro</button>
+    </div>
+
+    <h3 style="margin-top:1.5rem; margin-bottom:0.5rem; font-size:1.1rem;">Reconocimiento de voz (Paso 2)</h3>
+    <div style="background:#eef6ff;border:1px solid #c7ddff;border-radius:8px;padding:10px;margin-top:0.5rem;margin-bottom:0.8rem;">
+      <div style="font-size:0.9rem;color:#1e3a5f;">
+        <strong>💡 Instrucción:</strong> Primero captura tu rostro (Paso 1), luego haz clic en "Verificar voz" y di tu nombre completo de forma clara y natural.
+      </div>
+    </div>
+    <div style="margin-top:1rem;">
+      <button id="btnVerifyVoice" class="btn-primary">🎤 Paso 2: Verificar voz</button>
+      <div id="voiceStatus" style="margin-top:0.5rem; font-size:0.9rem; color:#666;"></div>
+      <div id="voicePhraseVerify" style="margin-top:0.8rem;padding:10px;background:#fff3cd;border:2px solid #ffc107;border-radius:8px;display:none;">
+        <div style="font-weight:700;margin-bottom:4px;color:#856404;font-size:0.95rem;">🎤 Di tu nombre completo ahora:</div>
+      </div>
     </div>
   </section>
 
@@ -38,7 +90,7 @@
   <div class="footer-inner">
     <div class="footer-left">
       <span class="logo">B</span>
-      <span>BioAccess — Sistema biométrico (solo rostro)</span>
+      <span>BioAccess — Sistema biométrico (rostro y voz)</span>
     </div>
     <div class="footer-right">made by <b>xRad0x</b></div>
   </div>

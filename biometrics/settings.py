@@ -35,8 +35,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # Rutas de datos / modelos
 DATA_DIR = BASE_DIR / 'data'
 PROCESSED_DIR = DATA_DIR / 'processed_faces'
+PROCESSED_VOICE_DIR = DATA_DIR / 'processed_voices'
 MODELS_DIR = DATA_DIR / 'models'
-for d in [DATA_DIR, PROCESSED_DIR, MODELS_DIR]:
+for d in [DATA_DIR, PROCESSED_DIR, PROCESSED_VOICE_DIR, MODELS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Imagen

@@ -4,6 +4,43 @@
   <meta charset="UTF-8" />
   <title>BioAccess — Panel del Administrador</title>
   <link rel="stylesheet" href="/static/css/styles.css" />
+  <style>
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounceIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    .btn-primary {
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    input[type="text"] {
+      transition: all 0.3s ease;
+    }
+    input[type="text"]:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  </style>
 </head>
 <body>
 
@@ -18,14 +55,18 @@
   <!-- 1. Registrar usuario -->
   <section class="box">
     <h2><span class="section-icon">👤</span> 1. Registrar nuevo usuario</h2>
-    <p>Este usuario recibirá el registro de su rostro.</p>
+    <p style="color:#64748b;margin-bottom:0.5rem;">¡Hola! 👋 Comienza registrando un nuevo usuario en el sistema. Es rápido y fácil.</p>
+    <div style="background:#f0f9ff;border-left:3px solid #3b82f6;padding:10px;border-radius:6px;margin-bottom:1rem;font-size:0.9rem;color:#1e40af;">
+      <strong>💡 Tip:</strong> Usa un nombre corto y fácil de recordar (ej: "juan", "maria", "carlos")
+    </div>
 
     <div class="actions-row" style="margin-top:.9rem;">
-      <label>
-        Nombre de usuario:
-        <input type="text" id="username" placeholder="Ej: juan" />
+      <label style="flex:1;">
+        <span style="display:block;margin-bottom:6px;font-weight:600;color:#334155;">Nombre de usuario:</span>
+        <input type="text" id="username" placeholder="Ej: juan" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:1rem;transition:all 0.3s ease;" />
+        <div id="userStatusLabel" style="margin-top:6px;font-size:0.85rem;color:#64748b;min-height:20px;"></div>
       </label>
-      <button id="btnCreateUser" class="btn-primary">➕ Crear usuario</button>
+      <button id="btnCreateUser" class="btn-primary" style="margin-top:24px;padding:10px 24px;font-size:1rem;font-weight:600;">➕ Crear usuario</button>
     </div>
   </section>
 
@@ -35,8 +76,22 @@
     <p>Mantén el rostro visible y firme durante la captura del dataset.</p>
 
     <div class="camera-wrapper">
-      <div class="camera-frame">
-        <video id="video" autoplay playsinline></video>
+      <div class="camera-frame" style="position:relative;">
+        <video id="video" autoplay playsinline style="transform: scaleX(-1);"></video>
+        <div id="countdownDisplay" style="position:absolute;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,0.7);z-index:10;border-radius:8px;">
+          <div style="font-size:5rem;font-weight:700;color:#fff;text-shadow:3px 3px 6px rgba(0,0,0,0.8);margin-bottom:1rem;" id="countdownNumber"></div>
+          <div style="font-size:1.5rem;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.8);" id="countdownMessage">Preparate, la captura comenzará en...</div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="photoCounter" style="margin-top:1rem;text-align:center;display:none;">
+      <div style="font-size:1.8rem;font-weight:700;color:#3b82f6;margin-bottom:0.3rem;">
+        <span id="currentPhotoCount">0</span> / <span id="totalPhotoCount">40</span>
+      </div>
+      <div style="font-size:1rem;color:#666;">Fotos capturadas</div>
+      <div style="margin-top:0.5rem;width:100%;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+        <div id="photoProgressBar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);width:0%;transition:width 0.3s ease;"></div>
       </div>
     </div>
 
@@ -45,15 +100,48 @@
     </div>
   </section>
 
+  <!-- 2b. Captura de voz -->
+  <section class="box">
+    <h2><span class="section-icon">🎤</span> 2b. Registrar voz (captura con micrófono)</h2>
+    <p>Habla claramente durante la captura del dataset de voz. Se capturarán 10 muestras.</p>
+    
+    <div style="background:#eef6ff;border:1px solid #c7ddff;border-radius:8px;padding:12px;margin-top:1rem;margin-bottom:1rem;">
+      <div style="font-weight:700;margin-bottom:8px;color:#0f2a46;">📝 Instrucciones importantes:</div>
+      <div style="color:#1e3a5f;line-height:1.6;">
+        <p style="margin:0 0 8px 0;"><strong>Durante cada grabación, repite esta frase:</strong></p>
+        <div style="background:#fff;border:2px solid #3b82f6;border-radius:6px;padding:12px;font-size:1.1rem;font-weight:600;color:#1e40af;text-align:center;margin:8px 0;">
+          "Mi nombre es <span id="voicePhraseName" style="color:#dc2626;">[nombre del usuario]</span> y estoy registrando mi voz para el sistema biométrico"
+        </div>
+        <ul style="margin:8px 0 0 0;padding-left:20px;font-size:0.95rem;">
+          <li>Habla de forma clara y natural</li>
+          <li>Mantén una distancia constante del micrófono</li>
+          <li>Evita ruidos de fondo</li>
+          <li>Repite la misma frase en cada una de las 20 grabaciones</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="actions-row" style="margin-top:.9rem;">
+      <button id="btnCaptureVoices" class="btn-primary">🎤 Capturar 10 muestras de voz</button>
+    </div>
+    <div id="voiceCaptureStatus" style="margin-top:0.5rem; font-size:0.9rem; color:#666;"></div>
+    <div id="voicePhraseDisplay" style="margin-top:0.8rem;padding:12px;background:#fff3cd;border:2px solid #ffc107;border-radius:8px;display:none;">
+      <div style="font-weight:700;margin-bottom:6px;color:#856404;">🎤 Di esta frase ahora:</div>
+      <div style="font-size:1.2rem;font-weight:600;color:#856404;text-align:center;padding:8px;">
+        "Mi nombre es <span id="currentPhraseName"></span> y estoy registrando mi voz para el sistema biométrico"
+      </div>
+    </div>
+  </section>
+
   <!-- 3. Reentrenar -->
   <section class="box">
     <h2><span class="section-icon">⚙️</span> 3. Reentrenar Sistema Biométrico</h2>
     <p>
-      Este proceso actualiza el modelo PCA + SVM con los nuevos rostros registrados.
-      Puede tardar entre <b>20 a 60 segundos</b>. No cierres esta ventana durante el proceso.
+      Este proceso actualiza los modelos PCA + SVM (rostro y voz) con los nuevos datos registrados.
+      Puede tardar entre <b>40 a 120 segundos</b>. No cierres esta ventana durante el proceso.
     </p>
     <div class="actions-row">
-      <button id="btnRetrain" class="btn-primary">🔄 Reentrenar sistema</button>
+      <button id="btnRetrainAll" class="btn-primary">🔄 Reentrenar sistema completo (rostro + voz)</button>
     </div>
   </section>
 
@@ -68,7 +156,7 @@
   <div class="footer-inner">
     <div class="footer-left">
       <span class="logo">B</span>
-      <span>BioAccess — Consola de administración biométrica</span>
+      <span>BioAccess — Consola de administración biométrica (rostro y voz)</span>
     </div>
     <div class="footer-right">made by <b>xRad0x</b></div>
   </div>
