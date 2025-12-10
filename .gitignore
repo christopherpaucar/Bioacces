@@ -3,5 +3,4 @@ venv/
 .venv/
 __pycache__/
 *.pyc
-data/processed_voices/*
-!data/processed_voices/.gitkeep
+
