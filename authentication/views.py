@@ -367,44 +367,61 @@ def verify_both(request):
             voice_label = voice_result.get("label")
             same_user = (face_label and voice_label and face_label == voice_label)
 
-        # Determinar resultado final - NUEVA LÓGICA: Si probabilidad promedio >= 75%, conceder acceso
+        # Determinar resultado final - LÓGICA ULTRA SIMPLIFICADA: Si promedio >= 75% → PERMITIR (sin más condiciones)
         final_accepted = False
         identified_user = None
         
-        # Determinar el usuario más probable
-        if face_conf and voice_conf:
-            # Si ambos tienen confianza, usar el de mayor probabilidad
-            if face_conf >= voice_conf:
-                identified_user = face_top1_label
-            else:
-                identified_user = voice_top1_label
-        elif face_conf:
-            identified_user = face_top1_label
-        elif voice_conf:
-            identified_user = voice_top1_label
+        # Obtener top1_label directamente de los resultados (siempre están disponibles incluso si rechazan)
+        face_top1 = None
+        voice_top1 = None
         
-        # Lógica de aceptación
-        if both_accepted and same_user:
-            # Caso ideal: ambos aceptan y coinciden
-            final_accepted = True
-            identified_user = face_result.get("label") or voice_result.get("label")
-        elif avg_confidence and avg_confidence >= 0.75:
-            # Si la probabilidad promedio es >= 75%, conceder acceso
-            final_accepted = True
-            # Si no tenemos identified_user aún, usar el de mayor confianza
-            if not identified_user:
-                if face_top1_label:
-                    identified_user = face_top1_label
-                elif voice_top1_label:
-                    identified_user = voice_top1_label
-        elif (face_conf and face_conf >= 0.75) or (voice_conf and voice_conf >= 0.75):
-            # Si al menos uno tiene >= 75%, también conceder acceso
-            final_accepted = True
-            if not identified_user:
-                if face_top1_label and face_conf >= 0.75:
-                    identified_user = face_top1_label
-                elif voice_top1_label and voice_conf >= 0.75:
-                    identified_user = voice_top1_label
+        if face_result:
+            face_top1 = face_result.get("top1_label")
+        if voice_result:
+            voice_top1 = voice_result.get("top1_label")
+        
+        # Determinar usuario más probable para mostrar
+        if face_conf and voice_conf:
+            if face_conf >= voice_conf:
+                identified_user = face_top1 if face_top1 else face_top1_label
+            else:
+                identified_user = voice_top1 if voice_top1 else voice_top1_label
+        elif face_conf:
+            identified_user = face_top1 if face_top1 else face_top1_label
+        elif voice_conf:
+            identified_user = voice_top1 if voice_top1 else voice_top1_label
+        
+        # LÓGICA DE ACEPTACIÓN: Si promedio >= 75% → PERMITIR (usar el usuario con mayor confianza)
+        if (face_conf is not None and voice_conf is not None and 
+            avg_confidence is not None and avg_confidence >= 0.75):
+            
+            # Si ambos tienen top1_label, verificar si coinciden
+            if face_top1 and voice_top1:
+                # Comparar sin importar mayúsculas/minúsculas y espacios
+                face_label_clean = str(face_top1).strip().lower()
+                voice_label_clean = str(voice_top1).strip().lower()
+                
+                if face_label_clean == voice_label_clean:
+                    # Ambos identifican al mismo usuario - PERMITIR
+                    final_accepted = True
+                    identified_user = face_top1
+                else:
+                    # No coinciden exactamente, pero promedio >= 75% - PERMITIR usando el de mayor confianza
+                    final_accepted = True
+                    if face_conf >= voice_conf:
+                        identified_user = face_top1
+                    else:
+                        identified_user = voice_top1
+            else:
+                # Si falta algún top1_label pero el promedio es alto, permitir con el que esté disponible
+                if face_top1 or voice_top1:
+                    final_accepted = True
+                    identified_user = face_top1 if face_top1 else voice_top1
+                else:
+                    final_accepted = False
+        else:
+            # Promedio menor a 75% o falta alguna modalidad
+            final_accepted = False
 
         # Construir respuesta
         result = {
