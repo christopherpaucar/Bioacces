@@ -253,26 +253,71 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         
         // NO limpiar el campo - mantener el nombre para capturar fotos y voz
-        // Mostrar label de estado debajo del campo
-        if (userStatusLabel) {
-          userStatusLabel.innerHTML = `<span style="color:#16a34a;font-weight:600;">✅ Usuario "<b>${username}</b>" creado exitosamente - Listo para capturar</span>`;
-        }
+        // Mostrar label de estado debajo del campo - FORZAR actualización
+        setTimeout(() => {
+          const labelEl = document.getElementById("userStatusLabel");
+          if (labelEl) {
+            labelEl.innerHTML = `<span style="color:#16a34a;font-weight:600;display:block;">✅ Usuario "<b>${username}</b>" creado exitosamente - Listo para capturar</span>`;
+            labelEl.style.display = "block";
+            labelEl.style.visibility = "visible";
+            labelEl.style.minHeight = "24px";
+            labelEl.style.padding = "4px 0";
+          }
+          
+          // También actualizar la variable global por si acaso
+          if (userStatusLabel) {
+            userStatusLabel.innerHTML = `<span style="color:#16a34a;font-weight:600;display:block;">✅ Usuario "<b>${username}</b>" creado exitosamente - Listo para capturar</span>`;
+            userStatusLabel.style.display = "block";
+            userStatusLabel.style.visibility = "visible";
+            userStatusLabel.style.minHeight = "24px";
+            userStatusLabel.style.padding = "4px 0";
+          }
+        }, 100);
         
-        // Cambiar botón a "Nuevo usuario" para permitir cancelar/empezar de nuevo
-        btnCreateUser.textContent = "🔄 Nuevo usuario";
-        btnCreateUser.style.background = "linear-gradient(135deg, #3b82f6, #60a5fa)";
-        btnCreateUser.disabled = false;
-        btnCreateUser.style.opacity = "1";
-        btnCreateUser.style.cursor = "pointer";
+        // Cambiar botón a "Nuevo usuario" para permitir cancelar/empezar de nuevo - FORZAR actualización
+        setTimeout(() => {
+          if (btnCreateUser) {
+            btnCreateUser.textContent = "🔄 Nuevo usuario";
+            btnCreateUser.innerHTML = "🔄 Nuevo usuario";
+            btnCreateUser.style.background = "linear-gradient(135deg, #3b82f6, #60a5fa)";
+            btnCreateUser.style.backgroundImage = "linear-gradient(135deg, #3b82f6, #60a5fa)";
+            btnCreateUser.disabled = false;
+            btnCreateUser.style.opacity = "1";
+            btnCreateUser.style.cursor = "pointer";
+          }
+        }, 100);
       } else {
         // Verificar si es porque el usuario ya existe
         if (data.user_exists || (data.msg && data.msg.includes("Ya existe"))) {
+          // Mostrar mensaje en el label debajo del campo (igual que cuando se crea exitosamente)
+          setTimeout(() => {
+            const labelEl = document.getElementById("userStatusLabel");
+            if (labelEl) {
+              labelEl.innerHTML = `<span style="color:#ef4444;font-weight:600;display:block;">⚠️ Ya existe un usuario con el nombre "<b>${username}</b>". Por favor, elige otro nombre diferente.</span>`;
+              labelEl.style.display = "block";
+              labelEl.style.visibility = "visible";
+              labelEl.style.minHeight = "24px";
+              labelEl.style.padding = "4px 0";
+            }
+            
+            // También actualizar la variable global por si acaso
+            if (userStatusLabel) {
+              userStatusLabel.innerHTML = `<span style="color:#ef4444;font-weight:600;display:block;">⚠️ Ya existe un usuario con el nombre "<b>${username}</b>". Por favor, elige otro nombre diferente.</span>`;
+              userStatusLabel.style.display = "block";
+              userStatusLabel.style.visibility = "visible";
+              userStatusLabel.style.minHeight = "24px";
+              userStatusLabel.style.padding = "4px 0";
+            }
+          }, 100);
+          
+          // También mostrar en el statusBox para mayor visibilidad
           setStatus(
             renderErrorCard(
               `⚠️ Ya existe un usuario con el nombre "<b>${username}</b>". Por favor, elige otro nombre diferente.`
             ),
             "error"
           );
+          
           // Resaltar el campo
           usernameField.style.border = "2px solid #ef4444";
           usernameField.focus();
@@ -280,6 +325,26 @@ document.addEventListener("DOMContentLoaded", () => {
             usernameField.style.border = "2px solid #e2e8f0";
           }, 3000);
         } else {
+          // Para otros errores, también mostrar en el label
+          setTimeout(() => {
+            const labelEl = document.getElementById("userStatusLabel");
+            if (labelEl) {
+              labelEl.innerHTML = `<span style="color:#ef4444;font-weight:600;display:block;">❌ ${data.msg || data.error || "No se pudo crear el usuario. Por favor, intenta con otro nombre."}</span>`;
+              labelEl.style.display = "block";
+              labelEl.style.visibility = "visible";
+              labelEl.style.minHeight = "24px";
+              labelEl.style.padding = "4px 0";
+            }
+            
+            if (userStatusLabel) {
+              userStatusLabel.innerHTML = `<span style="color:#ef4444;font-weight:600;display:block;">❌ ${data.msg || data.error || "No se pudo crear el usuario. Por favor, intenta con otro nombre."}</span>`;
+              userStatusLabel.style.display = "block";
+              userStatusLabel.style.visibility = "visible";
+              userStatusLabel.style.minHeight = "24px";
+              userStatusLabel.style.padding = "4px 0";
+            }
+          }, 100);
+          
           setStatus(
             renderErrorCard(
               data.msg || data.error || "No se pudo crear el usuario. Por favor, intenta con otro nombre. 🤔"

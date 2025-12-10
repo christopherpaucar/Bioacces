@@ -2,10 +2,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   const video = document.getElementById("video");
   const capturedFaceImage = document.getElementById("capturedFaceImage");
-  const btnVerifyFace = document.getElementById("btnVerifyFace");
-  const btnVerifyVoice = document.getElementById("btnVerifyVoice");
+  const btnVerifyBoth = document.getElementById("btnVerifyBoth");
   const voiceStatus = document.getElementById("voiceStatus");
-  const voicePhraseVerify = document.getElementById("voicePhraseVerify");
+  const stepIndicator = document.getElementById("stepIndicator");
+  const stepText = document.getElementById("stepText");
   const countdownDisplay = document.getElementById("countdownDisplay");
   const countdownNumber = document.getElementById("countdownNumber");
   const countdownMessage = document.getElementById("countdownMessage");
@@ -205,39 +205,98 @@ document.addEventListener("DOMContentLoaded", () => {
     return "Acceso denegado";
   }
 
-  // ---------------- Acción: Verificar rostro ----------------
-  btnVerifyFace.onclick = async () => {
-    setStatus("⏳ Preparando captura de rostro… mantén la cara visible.");
+  // ---------------- Acción: Verificar ambos (rostro + voz) ----------------
+  btnVerifyBoth.onclick = async () => {
+    // Deshabilitar botón durante el proceso
+    btnVerifyBoth.disabled = true;
+    btnVerifyBoth.textContent = "⏳ Verificando...";
+    btnVerifyBoth.style.opacity = "0.7";
     
-    // Mostrar cuenta regresiva
-    await showCountdown(3);
-    
-    setStatus("⏳ Capturando rostro… mantén la cara visible.");
-    
-    // Capturar y guardar temporalmente (no enviar todavía)
-    capturedFaceBlob = await captureFrameBlob();
-    
-    // Mostrar la imagen capturada en lugar del video
-    if (capturedFaceImage && capturedFaceBlob) {
-      const imageUrl = URL.createObjectURL(capturedFaceBlob);
-      capturedFaceImage.src = imageUrl;
-      capturedFaceImage.style.display = "block";
-      video.style.display = "none";
-    }
-    
-    setStatus(
-      renderInfoCard(
-        "✅ ¡Rostro capturado exitosamente!",
-        `¡Perfecto! Tu rostro ha sido capturado correctamente. 🎯<br><br>
-        <b>📝 Próximo paso:</b> Haz clic en "Paso 2: Verificar voz" y di tu nombre completo de forma clara.`
-      ),
-      "ok"
-    );
-    
-    // Actualizar botón de voz para indicar que está listo
-    if (btnVerifyVoice) {
-      btnVerifyVoice.style.background = "linear-gradient(135deg, #16a34a, #22c55e)";
-      btnVerifyVoice.textContent = "🎤 Verificar voz (rostro listo)";
+    try {
+      // ========== PASO 1: Capturar rostro ==========
+      if (stepIndicator) {
+        stepIndicator.style.display = "block";
+        stepText.textContent = "📸 Paso 1: Capturando rostro...";
+        stepIndicator.style.background = "#eef6ff";
+        stepIndicator.style.borderColor = "#3b82f6";
+      }
+      voiceStatus.textContent = "Preparando captura de rostro...";
+      voiceStatus.style.color = "#3b82f6";
+      
+      setStatus("⏳ Preparando captura de rostro… mantén la cara visible.");
+      
+      // Mostrar cuenta regresiva
+      await showCountdown(3, "Preparate, la captura comenzará en...");
+      
+      setStatus("⏳ Capturando rostro… mantén la cara visible.");
+      
+      // Capturar y guardar temporalmente
+      capturedFaceBlob = await captureFrameBlob();
+      
+      // Mostrar la imagen capturada en lugar del video
+      if (capturedFaceImage && capturedFaceBlob) {
+        const imageUrl = URL.createObjectURL(capturedFaceBlob);
+        capturedFaceImage.src = imageUrl;
+        capturedFaceImage.style.display = "block";
+        video.style.display = "none";
+      }
+      
+      // Actualizar indicador de paso
+      if (stepText) {
+        stepText.textContent = "✅ Paso 1 completado: Rostro capturado";
+      }
+      voiceStatus.textContent = "✅ Rostro capturado correctamente";
+      voiceStatus.style.color = "#16a34a";
+      
+      // Pausa de 2 segundos antes del paso 2 para que el usuario se prepare
+      if (stepText) {
+        stepText.textContent = "⏳ Preparando Paso 2...";
+        stepIndicator.style.background = "#fef3c7";
+        stepIndicator.style.borderColor = "#f59e0b";
+      }
+      voiceStatus.textContent = "⏳ Preparando verificación de voz en 2 segundos...";
+      voiceStatus.style.color = "#f59e0b";
+      
+      await new Promise((r) => setTimeout(r, 2000));
+      
+      // ========== PASO 2: Capturar y verificar voz ==========
+      if (stepText) {
+        stepText.textContent = "🎤 Paso 2: Verificando voz...";
+        stepIndicator.style.background = "#f0fdf4";
+        stepIndicator.style.borderColor = "#16a34a";
+      }
+      voiceStatus.textContent = "🎤 Preparando grabación de voz...";
+      voiceStatus.style.color = "#3b82f6";
+      
+      setStatus("⏳ Preparando verificación de voz…");
+      
+      // Iniciar grabación de voz automáticamente
+      await startRecording();
+      
+      // Esperar 5 segundos de grabación
+      await new Promise((r) => setTimeout(r, 5000));
+      
+      // Detener grabación automáticamente
+      stopRecording();
+      
+    } catch (e) {
+      setStatus(
+        renderDeniedCard({
+          title: "Error durante la verificación",
+          detail: "Hubo un problema durante el proceso. Por favor, intenta nuevamente.",
+        }),
+        "error"
+      );
+      
+      // Resetear
+      resetFaceCapture();
+      btnVerifyBoth.disabled = false;
+      btnVerifyBoth.textContent = "🔒 Verificar identidad";
+      btnVerifyBoth.style.opacity = "1";
+      if (stepIndicator) {
+        stepIndicator.style.display = "none";
+      }
+      voiceStatus.textContent = "";
     }
   };
   
@@ -254,10 +313,6 @@ document.addEventListener("DOMContentLoaded", () => {
       video.style.display = "block";
     }
     capturedFaceBlob = null;
-    if (btnVerifyVoice) {
-      btnVerifyVoice.style.background = "";
-      btnVerifyVoice.textContent = "🎤 Paso 2: Verificar voz";
-    }
   }
 
   // ---------------- Reconocimiento de voz ---------------- 
@@ -286,13 +341,8 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       mediaRecorder.start();
-      voiceStatus.textContent = "🎤 Grabando... Di tu nombre completo ahora (máximo 5 segundos)";
+      voiceStatus.textContent = "🎤 Grabando... Di tu nombre completo ahora";
       voiceStatus.style.color = "#ef4444";
-      
-      // Mostrar la instrucción
-      if (voicePhraseVerify) {
-        voicePhraseVerify.style.display = "block";
-      }
     } catch (e) {
       setStatus(
         renderDeniedCard({
@@ -322,13 +372,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
         "error"
       );
-      if (voicePhraseVerify) {
-        voicePhraseVerify.style.display = "none";
+      resetFaceCapture();
+      btnVerifyBoth.disabled = false;
+      btnVerifyBoth.textContent = "🔒 Verificar identidad";
+      btnVerifyBoth.style.opacity = "1";
+      if (stepIndicator) {
+        stepIndicator.style.display = "none";
       }
+      voiceStatus.textContent = "";
       return;
     }
 
     setStatus("⏳ Verificando rostro y voz conjuntamente… procesando.");
+    if (stepText) {
+      stepText.textContent = "⏳ Procesando verificación...";
+    }
+    voiceStatus.textContent = "⏳ Procesando verificación...";
+    voiceStatus.style.color = "#3b82f6";
     
     // Convertir WebM a WAV usando Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -393,17 +453,36 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus(resultHtml, "ok");
         voiceStatus.textContent = "✅ Verificación completa (rostro + voz)";
         voiceStatus.style.color = "#16a34a";
+        if (stepText) {
+          stepText.textContent = "✅ Verificación completada exitosamente";
+          stepIndicator.style.background = "#ecfdf5";
+          stepIndicator.style.borderColor = "#16a34a";
+        }
         
-        // Resetear después de 3 segundos para permitir nueva captura
+        // Restaurar botón
+        btnVerifyBoth.disabled = false;
+        btnVerifyBoth.textContent = "🔒 Verificar identidad";
+        btnVerifyBoth.style.opacity = "1";
+        
+        // Resetear después de 5 segundos para permitir nueva captura
         setTimeout(() => {
           resetFaceCapture();
-        }, 3000);
+          if (stepIndicator) {
+            stepIndicator.style.display = "none";
+          }
+          voiceStatus.textContent = "";
+        }, 5000);
       } else {
         const faceData = data.face || {};
         const voiceData = data.voice || {};
-        const faceProb = faceData.confidence || 0;
-        const voiceProb = voiceData.confidence || 0;
+        const faceProb = data.face_confidence || faceData.confidence || 0;
+        const voiceProb = data.voice_confidence || voiceData.confidence || 0;
+        const avgProb = data.confidence || ((faceProb + voiceProb) / 2);
         const reason = data.reason || "Acceso denegado";
+        
+        // Obtener el nombre del usuario más probable (si está disponible)
+        const probableUser = data.label || data.face_top1_label || data.voice_top1_label || 
+                            faceData.top1_label || voiceData.top1_label || null;
         
         const resultHtml = `
           <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:14px 16px;color:#7f1d1d;">
@@ -413,6 +492,8 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div style="font-size:.95rem;opacity:.95;margin-bottom:8px;">${reason}</div>
             <div style="display:grid;grid-template-columns:140px 1fr;row-gap:6px;column-gap:10px;color:#7f1d1d;font-size:.9rem;margin-top:8px;">
+              ${probableUser ? `<div style="opacity:.75;">Usuario probable</div><div><b>${probableUser}</b></div>` : ''}
+              <div style="opacity:.75;">Confianza promedio</div><div>${avgProb > 0 ? (avgProb * 100).toFixed(1) + "%" : "—"}</div>
               <div style="opacity:.75;">Rostro</div><div>${faceProb > 0 ? (faceProb * 100).toFixed(1) + "%" : "—"}</div>
               <div style="opacity:.75;">Voz</div><div>${voiceProb > 0 ? (voiceProb * 100).toFixed(1) + "%" : "—"}</div>
             </div>
@@ -427,16 +508,27 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus(resultHtml, "error");
         voiceStatus.textContent = "❌ Verificación fallida";
         voiceStatus.style.color = "#ef4444";
+        if (stepText) {
+          stepText.textContent = "❌ Verificación fallida";
+          stepIndicator.style.background = "#fff1f2";
+          stepIndicator.style.borderColor = "#ef4444";
+        }
         
-        // Resetear después de 3 segundos para permitir nuevo intento
+        // Restaurar botón
+        btnVerifyBoth.disabled = false;
+        btnVerifyBoth.textContent = "🔒 Verificar identidad";
+        btnVerifyBoth.style.opacity = "1";
+        
+        // Resetear después de 5 segundos para permitir nuevo intento
         setTimeout(() => {
           resetFaceCapture();
-        }, 3000);
+          if (stepIndicator) {
+            stepIndicator.style.display = "none";
+          }
+          voiceStatus.textContent = "";
+        }, 5000);
       }
       
-      if (voicePhraseVerify) {
-        voicePhraseVerify.style.display = "none";
-      }
     } catch (e) {
       setStatus(
         renderDeniedCard({
@@ -447,9 +539,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       voiceStatus.textContent = "❌ Error de conexión";
       voiceStatus.style.color = "#ef4444";
-      if (voicePhraseVerify) {
-        voicePhraseVerify.style.display = "none";
-      }
     }
   }
 
@@ -500,18 +589,4 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Blob([arrayBuffer], { type: 'audio/wav' });
   }
 
-  // Botón de verificación de voz
-  btnVerifyVoice.onclick = async () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      stopRecording();
-    } else {
-      await startRecording();
-      // Detener automáticamente después de 5 segundos
-      setTimeout(() => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-          stopRecording();
-        }
-      }, 5000);
-    }
-  };
 });

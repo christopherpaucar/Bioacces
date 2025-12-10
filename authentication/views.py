@@ -337,6 +337,23 @@ def verify_both(request):
             voice_error = f"Error procesando voz: {str(e)}"
 
         # === Resultado combinado ===
+        # Obtener confianza promedio primero
+        face_conf = face_result.get("confidence") if face_result else None
+        voice_conf = voice_result.get("confidence") if voice_result else None
+        avg_confidence = None
+        if face_conf is not None and voice_conf is not None:
+            avg_confidence = (face_conf + voice_conf) / 2
+        elif face_conf is not None:
+            avg_confidence = face_conf
+        elif voice_conf is not None:
+            avg_confidence = voice_conf
+        
+        # Obtener labels de top1 para mostrar siempre
+        face_top1_label = face_result.get("top1_label") if face_result else None
+        voice_top1_label = voice_result.get("top1_label") if voice_result else None
+        face_top1_prob = face_result.get("top1_prob") if face_result else None
+        voice_top1_prob = voice_result.get("top1_prob") if voice_result else None
+        
         # Ambos deben aceptar para que el acceso sea concedido
         both_accepted = (
             face_result and face_result.get("accepted") and
@@ -350,19 +367,44 @@ def verify_both(request):
             voice_label = voice_result.get("label")
             same_user = (face_label and voice_label and face_label == voice_label)
 
-        # Determinar resultado final
-        final_accepted = both_accepted and same_user
+        # Determinar resultado final - NUEVA LÓGICA: Si probabilidad promedio >= 75%, conceder acceso
+        final_accepted = False
+        identified_user = None
         
-        # Obtener confianza promedio
-        face_conf = face_result.get("confidence") if face_result else None
-        voice_conf = voice_result.get("confidence") if voice_result else None
-        avg_confidence = None
-        if face_conf is not None and voice_conf is not None:
-            avg_confidence = (face_conf + voice_conf) / 2
-        elif face_conf is not None:
-            avg_confidence = face_conf
-        elif voice_conf is not None:
-            avg_confidence = voice_conf
+        # Determinar el usuario más probable
+        if face_conf and voice_conf:
+            # Si ambos tienen confianza, usar el de mayor probabilidad
+            if face_conf >= voice_conf:
+                identified_user = face_top1_label
+            else:
+                identified_user = voice_top1_label
+        elif face_conf:
+            identified_user = face_top1_label
+        elif voice_conf:
+            identified_user = voice_top1_label
+        
+        # Lógica de aceptación
+        if both_accepted and same_user:
+            # Caso ideal: ambos aceptan y coinciden
+            final_accepted = True
+            identified_user = face_result.get("label") or voice_result.get("label")
+        elif avg_confidence and avg_confidence >= 0.75:
+            # Si la probabilidad promedio es >= 75%, conceder acceso
+            final_accepted = True
+            # Si no tenemos identified_user aún, usar el de mayor confianza
+            if not identified_user:
+                if face_top1_label:
+                    identified_user = face_top1_label
+                elif voice_top1_label:
+                    identified_user = voice_top1_label
+        elif (face_conf and face_conf >= 0.75) or (voice_conf and voice_conf >= 0.75):
+            # Si al menos uno tiene >= 75%, también conceder acceso
+            final_accepted = True
+            if not identified_user:
+                if face_top1_label and face_conf >= 0.75:
+                    identified_user = face_top1_label
+                elif voice_top1_label and voice_conf >= 0.75:
+                    identified_user = voice_top1_label
 
         # Construir respuesta
         result = {
@@ -375,8 +417,24 @@ def verify_both(request):
             "voice_confidence": voice_conf,
         }
         
+        # Siempre incluir el label del usuario más probable
+        if identified_user:
+            result["label"] = identified_user
+        elif face_top1_label:
+            result["label"] = face_top1_label
+        elif voice_top1_label:
+            result["label"] = voice_top1_label
+        
+        # Incluir top1 labels y probabilidades para mostrar en el frontend
+        if face_top1_label:
+            result["face_top1_label"] = face_top1_label
+            result["face_top1_prob"] = face_top1_prob
+        if voice_top1_label:
+            result["voice_top1_label"] = voice_top1_label
+            result["voice_top1_prob"] = voice_top1_prob
+        
         if final_accepted:
-            result["label"] = face_result.get("label") or voice_result.get("label")
+            result["label"] = identified_user or face_result.get("label") or voice_result.get("label")
         else:
             reasons = []
             if face_result and not face_result.get("accepted"):
