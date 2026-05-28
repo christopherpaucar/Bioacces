@@ -4,8 +4,23 @@ import numpy as np
 from pathlib import Path
 from django.conf import settings
 import time
+import shutil
+import tempfile
 
-HAAR = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+def _load_haar_cascade():
+  source = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
+  target_dir = Path(tempfile.gettempdir()) / "bioacces_haar"
+  target_dir.mkdir(parents=True, exist_ok=True)
+  target = target_dir / source.name
+  if not target.exists():
+    shutil.copy2(source, target)
+  cascade = cv2.CascadeClassifier(str(target))
+  if cascade.empty():
+    raise RuntimeError(f"No se pudo cargar el clasificador Haar desde {target}")
+  return cascade
+
+
+HAAR = _load_haar_cascade()
 
 
 def ensure_dir(path: Path):
